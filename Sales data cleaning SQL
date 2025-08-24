@@ -1,0 +1,43 @@
+-- Top 5 Most Expensive Products by Category
+WITH RankedProducts AS (
+    SELECT 
+        Category,
+        Product_Name,
+        Price_INR,
+        RANK() OVER (PARTITION BY Category ORDER BY Price_INR DESC) AS rank_price
+    FROM Products
+)
+SELECT Category, Product_Name, Price_INR
+FROM RankedProducts
+WHERE rank_price <= 5;
+
+-- Average Rating per Brand (with minimum 10 reviews)
+SELECT Brand, 
+       ROUND(AVG(Rating),2) AS Avg_Rating,
+       COUNT(*) AS Product_Count
+FROM Products
+WHERE Number_of_Reviews >= 10
+GROUP BY Brand
+ORDER BY Avg_Rating DESC;
+
+-- Price vs Rating Correlation
+SELECT Category,
+       ROUND(AVG(Price_INR),0) AS Avg_Price,
+       ROUND(AVG(Rating),2) AS Avg_Rating
+FROM Products
+GROUP BY Category
+HAVING AVG(Price_INR) > (SELECT AVG(Price_INR) FROM Products);
+
+-- Best Value for Money Products
+SELECT Product_Name, Brand, Category, Price_INR, Rating,
+       ROUND(Rating / Price_INR, 3) AS Value_Score
+FROM Products
+WHERE Price_INR < (SELECT AVG(Price_INR) FROM Products)
+ORDER BY Value_Score DESC
+LIMIT 10;
+
+-- Packaging Preference by Skin Type
+SELECT Skin_Type, Packaging_Type, COUNT(*) AS Count
+FROM Products
+GROUP BY Skin_Type, Packaging_Type
+ORDER BY Skin_Type, Count DESC;
